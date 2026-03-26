@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Node
+ET-GEN/node_modules/
+ET-GEN/dist/
+ET-GEN/.env
+
+# OS
+.DS_Store
+Thumbs.db
