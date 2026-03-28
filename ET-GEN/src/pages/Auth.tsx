@@ -14,6 +14,15 @@ export function Auth() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const floatingCurrencies = [
+    { symbol: '$', left: '15%', top: '20%', duration: 5, delay: 0 },
+    { symbol: '₹', left: '80%', top: '25%', duration: 6, delay: 1 },
+    { symbol: '€', left: '10%', top: '70%', duration: 5.5, delay: 0.5 },
+    { symbol: '¥', left: '85%', top: '75%', duration: 6.5, delay: 1.5 },
+    { symbol: '£', left: '45%', top: '15%', duration: 7, delay: 2 },
+    { symbol: '$', left: '55%', top: '85%', duration: 5.2, delay: 0.8 },
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -34,8 +43,38 @@ export function Auth() {
   return (
     <div className="min-h-screen bg-[#0A0B0D] flex items-center justify-center p-8 relative overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#F27D26]/5 blur-[120px] rounded-full" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#FF7A00]/5 blur-[120px] rounded-full" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#00E5FF]/5 blur-[120px] rounded-full" />
+
+      {/* Floating Currencies */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {floatingCurrencies.map((item, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-[#00E5FF] font-mono text-5xl sm:text-7xl font-bold select-none"
+            style={{
+              left: item.left,
+              top: item.top,
+              textShadow: '0 0 30px rgba(0, 229, 255, 0.4), 0 0 60px rgba(0, 229, 255, 0.2)',
+            }}
+            initial={{ opacity: 0 }}
+            animate={{
+              y: [0, -20, 0],
+              x: [0, 10, 0],
+              scale: [1, 1.05, 1],
+              opacity: [0.15, 0.4, 0.15],
+            }}
+            transition={{
+              duration: item.duration,
+              delay: item.delay,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            {item.symbol}
+          </motion.div>
+        ))}
+      </div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -44,7 +83,7 @@ export function Auth() {
       >
         <div className="bg-[#151619] border border-[#2A2B2F] rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-[#F27D26] rounded-lg flex items-center justify-center text-black font-bold text-2xl mx-auto mb-4">A</div>
+            <div className="w-12 h-12 bg-[#FF7A00] rounded-lg flex items-center justify-center text-black font-bold text-2xl mx-auto mb-4">C</div>
             <h1 className="text-2xl font-bold text-white mb-2">
               {isLogin ? 'Welcome Back' : 'Create Account'}
             </h1>

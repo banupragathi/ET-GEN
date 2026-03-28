@@ -15,9 +15,9 @@ const SEVERITY_CONFIG = {
     dot: 'bg-red-500',
   },
   HIGH: {
-    badge: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
-    border: 'hover:border-orange-500/30',
-    dot: 'bg-orange-500',
+    badge: 'bg-[#FF7A00]/10 border-[#FF7A00]/30 text-[#FF7A00]',
+    border: 'hover:border-[#FF7A00]/30',
+    dot: 'bg-[#FF7A00]',
   },
   MEDIUM: {
     badge: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
@@ -30,6 +30,7 @@ type FilterSeverity = 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM';
 type FilterStatus = 'pending' | 'approved' | 'rejected' | 'all';
 
 function IssueCard({ issue, onSelect, onApprove, onReject }: {
+  key?: React.Key;
   issue: FrontendAnomaly;
   onSelect: (a: FrontendAnomaly) => void;
   onApprove: (id: string) => void;
@@ -45,7 +46,7 @@ function IssueCard({ issue, onSelect, onApprove, onReject }: {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.2 }}
-      className={`bg-[#111214] border border-[#1F2023] rounded-xl overflow-hidden transition-all cursor-pointer group ${cfg.border}`}
+      className={`bg-[#11171D] border border-[#1C2632] rounded-xl overflow-hidden transition-all cursor-pointer group ${cfg.border} shadow-lg`}
       onClick={() => onSelect(issue)}
     >
       <div className="p-5">
@@ -65,35 +66,35 @@ function IssueCard({ issue, onSelect, onApprove, onReject }: {
             </div>
 
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-semibold text-white">{issue.vendor}</span>
+              <span className="text-sm font-semibold text-[#E6EDF3]">{issue.vendor}</span>
             </div>
-            <p className="text-xs text-[#8E9299] leading-relaxed line-clamp-1">{issue.rootCause}</p>
+            <p className="text-xs text-[#8B949E] leading-relaxed line-clamp-1 italic">{issue.rootCause}</p>
           </div>
 
           {/* Right numbers */}
           <div className="text-right shrink-0">
             <p className="text-[10px] text-[#5A5B5F] font-mono uppercase tracking-widest">Amount</p>
-            <p className="text-lg font-mono font-semibold text-white">{fmt(issue.amount)}</p>
+            <p className="text-lg font-mono font-semibold text-[#E6EDF3]">{fmt(issue.amount)}</p>
           </div>
         </div>
 
         {/* Stats row */}
-        <div className="mt-4 grid grid-cols-3 gap-3 pt-4 border-t border-[#1F2023]">
+        <div className="mt-4 grid grid-cols-3 gap-3 pt-4 border-t border-[#1C2632]">
           <div>
             <p className="text-[9px] text-[#5A5B5F] font-mono uppercase tracking-widest mb-1">Risk If Ignored</p>
-            <p className="text-xs font-mono text-red-400 font-semibold">{fmt(issue.riskIfIgnored)}</p>
+            <p className="text-xs font-mono text-red-100 font-semibold">{fmt(issue.riskIfIgnored)}</p>
           </div>
           <div>
             <p className="text-[9px] text-[#5A5B5F] font-mono uppercase tracking-widest mb-1">Recoverable</p>
-            <p className="text-xs font-mono text-emerald-400 font-semibold">{fmt(issue.impact)}</p>
+            <p className="text-xs font-mono text-[#00E5FF] font-semibold">{fmt(issue.impact)}</p>
           </div>
           <div>
             <p className="text-[9px] text-[#5A5B5F] font-mono uppercase tracking-widest mb-2">Confidence</p>
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-1 bg-[#1F2023] rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${cfg.dot}`} style={{ width: `${issue.confidence * 100}%` }} />
+              <div className="flex-1 h-1 bg-[#0B0F14] rounded-full overflow-hidden">
+                <div className={`h-full rounded-full ${cfg.dot} shadow-[0_0_8px_rgba(255,122,0,0.4)]`} style={{ width: `${issue.confidence * 100}%` }} />
               </div>
-              <span className="text-[9px] font-mono text-[#8E9299]">{(issue.confidence * 100).toFixed(0)}%</span>
+              <span className="text-[9px] font-mono text-[#5A5B5F]">{(issue.confidence * 100).toFixed(0)}%</span>
             </div>
           </div>
         </div>
@@ -103,17 +104,17 @@ function IssueCard({ issue, onSelect, onApprove, onReject }: {
           <div className="mt-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => onApprove(issue.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F27D26] hover:bg-[#D96C1E] text-black text-[10px] font-bold uppercase tracking-widest rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF7A00] hover:bg-[#E66D00] text-black text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all hover:scale-[1.02]"
             >
               <ShieldCheck className="w-3 h-3" /> Approve
             </button>
             <button
               onClick={() => onReject(issue.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2A2B2F] hover:bg-red-500/10 hover:border-red-500/30 text-[#8E9299] hover:text-red-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#1C2632] hover:bg-red-500/10 hover:border-red-500/30 text-[#8B949E] hover:text-red-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-colors"
             >
               <X className="w-3 h-3" /> Ignore
             </button>
-            <button className="ml-auto flex items-center gap-1 text-[10px] text-[#5A5B5F] group-hover:text-[#F27D26] transition-colors font-mono">
+            <button className="ml-auto flex items-center gap-1 text-[10px] text-[#5A5B5F] group-hover:text-[#FF7A00] transition-colors font-mono uppercase tracking-widest">
               Details <ChevronRight className="w-3 h-3" />
             </button>
           </div>
@@ -121,8 +122,8 @@ function IssueCard({ issue, onSelect, onApprove, onReject }: {
 
         {/* Resolved state */}
         {!isPending && (
-          <div className="mt-4 pt-3 border-t border-[#1F2023]">
-            <span className={`text-[10px] font-mono uppercase tracking-widest ${issue.status === 'approved' ? 'text-emerald-400' : 'text-[#5A5B5F]'}`}>
+          <div className="mt-4 pt-3 border-t border-[#1C2632]">
+            <span className={`text-[10px] font-mono uppercase tracking-widest ${issue.status === 'approved' ? 'text-[#00E5FF]' : 'text-[#5A5B5F]'}`}>
               {issue.status === 'approved' ? '✓ Resolved' : '✕ Dismissed'}
             </span>
           </div>
@@ -151,17 +152,17 @@ export function Alerts() {
   }), [anomalies]);
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64 gap-3">
-      <RefreshCw className="w-5 h-5 text-[#F27D26] animate-spin" />
-      <span className="text-sm text-[#5A5B5F] font-mono">Loading issues…</span>
+    <div className="flex flex-col items-center justify-center h-64 gap-3">
+      <RefreshCw className="w-6 h-6 text-[#FF7A00] animate-spin" />
+      <span className="text-sm text-[#5A5B5F] font-mono">Scanning telemetry...</span>
     </div>
   );
 
   if (error) return (
     <div className="flex flex-col items-center justify-center h-64 gap-4">
       <AlertTriangle className="w-8 h-8 text-red-500" />
-      <p className="text-sm text-[#8E9299]">{error}</p>
-      <button onClick={refresh} className="px-4 py-2 text-xs font-mono uppercase tracking-widest bg-[#F27D26] text-black rounded-lg">Retry</button>
+      <p className="text-sm text-[#8B949E]">{error}</p>
+      <button onClick={refresh} className="px-4 py-2 text-xs font-mono uppercase tracking-widest bg-[#FF7A00] text-black rounded-lg">Retry</button>
     </div>
   );
 
@@ -171,27 +172,27 @@ export function Alerts() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-[#F27D26]" /> Issues & Anomalies
+            <h1 className="text-lg font-semibold text-[#E6EDF3] flex items-center gap-2 italic font-serif">
+              <AlertTriangle className="w-5 h-5 text-[#FF7A00]" /> Intelligence Alerts
             </h1>
-            <p className="text-xs text-[#5A5B5F] font-mono mt-1">{filtered.length} issue{filtered.length !== 1 ? 's' : ''} shown</p>
+            <p className="text-xs text-[#5A5B5F] font-mono mt-1">{filtered.length} prioritized event{filtered.length !== 1 ? 's' : ''} found</p>
           </div>
-          <button onClick={refresh} className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[#5A5B5F] hover:text-white border border-[#1F2023] hover:border-[#2A2B2F] px-3 py-2 rounded-lg transition-colors">
-            <RefreshCw className="w-3 h-3" /> Refresh
+          <button onClick={refresh} className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[#5A5B5F] hover:text-[#E6EDF3] border border-[#1C2632] hover:border-[#FF7A00]/50 px-3 py-2 rounded-lg transition-all">
+            <RefreshCw className="w-3 h-3" /> Pulse Refresh
           </button>
         </div>
 
         {/* Severity summary */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Critical', count: counts.critical, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', key: 'CRITICAL' as FilterSeverity },
-            { label: 'High', count: counts.high, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20', key: 'HIGH' as FilterSeverity },
-            { label: 'Medium', count: counts.medium, color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20', key: 'MEDIUM' as FilterSeverity },
+            { label: 'Critical', count: counts.critical, color: 'text-red-400', bg: 'bg-red-500/5 border-red-500/10', key: 'CRITICAL' as FilterSeverity },
+            { label: 'High', count: counts.high, color: 'text-[#FF7A00]', bg: 'bg-[#FF7A00]/5 border-[#FF7A00]/10', key: 'HIGH' as FilterSeverity },
+            { label: 'Medium', count: counts.medium, color: 'text-yellow-400', bg: 'bg-yellow-500/5 border-yellow-500/10', key: 'MEDIUM' as FilterSeverity },
           ].map(({ label, count, color, bg, key }) => (
             <button
               key={key}
               onClick={() => setSeverityFilter(severityFilter === key ? 'ALL' : key)}
-              className={`rounded-xl p-4 border transition-all text-left ${bg} ${severityFilter === key ? 'ring-1 ring-white/10' : 'opacity-70 hover:opacity-100'}`}
+              className={`rounded-xl p-4 border transition-all text-left ${bg} ${severityFilter === key ? 'ring-1 ring-[#FF7A00]/30 border-[#FF7A00]/30' : 'opacity-70 hover:opacity-100 hover:border-white/10'}`}
             >
               <p className={`text-2xl font-mono font-bold ${color}`}>{count}</p>
               <p className={`text-[10px] uppercase tracking-widest font-mono mt-1 ${color}`}>{label}</p>
@@ -206,10 +207,10 @@ export function Alerts() {
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`text-[10px] px-3 py-1 rounded-lg font-mono uppercase tracking-widest transition-colors border ${
+              className={`text-[10px] px-3 py-1 rounded-lg font-mono uppercase tracking-widest transition-all border ${
                 statusFilter === s
-                  ? 'bg-[#F27D26] border-[#F27D26] text-black font-bold'
-                  : 'border-[#1F2023] text-[#5A5B5F] hover:border-[#2A2B2F] hover:text-white'
+                  ? 'bg-[#FF7A00] border-[#FF7A00] text-black font-bold shadow-[0_0_15px_rgba(255,122,0,0.3)]'
+                  : 'border-[#1C2632] text-[#5A5B5F] hover:border-[#8B949E] hover:text-[#E6EDF3]'
               }`}
             >
               {s}
@@ -219,10 +220,10 @@ export function Alerts() {
 
         {/* Issue list */}
         {filtered.length === 0 ? (
-          <div className="text-center py-20 bg-[#111214] border border-[#1F2023] rounded-xl">
-            <ShieldCheck className="w-10 h-10 text-[#F27D26] mx-auto mb-3" />
-            <p className="text-white font-semibold">All Clear</p>
-            <p className="text-xs text-[#5A5B5F] mt-1">No issues match the current filter.</p>
+          <div className="text-center py-20 bg-[#11171D] border border-[#1C2632] rounded-xl shadow-inner">
+            <ShieldCheck className="w-10 h-10 text-[#FF7A00] mx-auto mb-3 opacity-60" />
+            <p className="text-[#E6EDF3] font-semibold">Architecture Stable</p>
+            <p className="text-xs text-[#5A5B5F] mt-1 font-mono uppercase tracking-widest">No anomalies detected in current buffer</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -251,3 +252,4 @@ export function Alerts() {
     </>
   );
 }
+

@@ -1,0 +1,5 @@
+,src/components/AnomalyList.tsx(20,23): error TS2339: Property 'type' does not exist on type 'FrontendAnomaly'.
+src/components/AnomalyList.tsx(21,30): error TS2339: Property 'description' does not exist on type 'FrontendAnomaly'.
+src/pages/Alerts.tsx(232,19): error TS2322: Type '{ key: any; issue: any; onSelect: any; onApprove: any; onReject: any; }' is not assignable to type '{ issue: FrontendAnomaly; onSelect: (a: FrontendAnomaly) => void; onApprove: (id: string) => void; onReject: (id: string) => void; }'.
+  Property 'key' does not exist on type '{ issue: FrontendAnomaly; onSelect: (a: FrontendAnomaly) => void; onApprove: (id: string) => void; onReject: (id: string) => void; }'.
+,

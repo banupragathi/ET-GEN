@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useCostIntelligence, Anomaly } from '../lib/CostIntelligenceContext';
-import { AlertCircle, TrendingDown, Clock, ShieldCheck, XCircle, Brain, Loader2 } from 'lucide-react';
+import { AlertTriangle, TrendingDown, Clock, ShieldCheck, XCircle, Brain, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const fmt = (n: number) =>
+  n >= 100000 ? `₹${(n / 100000).toFixed(2)}L` : `₹${n.toLocaleString('en-IN')}`;
 
 export function AnomalyList() {
   const { anomalies, approveAnomaly, rejectAnomaly } = useCostIntelligence();
@@ -13,25 +16,30 @@ export function AnomalyList() {
   const pendingAnomalies = anomalies.filter(a => a.status === 'pending');
 
   const handleAiAnalyze = async (anomaly: Anomaly) => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      setAiAnalysis(prev => ({ ...prev, [anomaly.id]: "API Key not configured. Set VITE_GEMINI_API_KEY." }));
+      return;
+    }
+
     setAnalyzingId(anomaly.id);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
       const prompt = `Analyze this cost anomaly for an enterprise cost intelligence system:
-      Type: ${anomaly.type}
-      Description: ${anomaly.description}
-      Amount: $${anomaly.amount}
+      Type: ${anomaly.anomalyLabel}
+      Description: ${anomaly.rootCause}
+      Amount: ${fmt(anomaly.amount)}
       Confidence: ${anomaly.confidence}
-      Root Cause: ${anomaly.rootCause}
       Vendor: ${anomaly.vendor || 'N/A'}
       
       Provide a concise 2-sentence autonomous recommendation on whether to approve or reject this action, and why.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-      });
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
 
-      setAiAnalysis(prev => ({ ...prev, [anomaly.id]: response.text || "Analysis failed." }));
+      setAiAnalysis(prev => ({ ...prev, [anomaly.id]: responseText || "Analysis failed." }));
     } catch (error) {
       console.error("AI Analysis failed:", error);
       setAiAnalysis(prev => ({ ...prev, [anomaly.id]: "AI Engine currently offline. Recommended action: Manual Review." }));
@@ -42,12 +50,12 @@ export function AnomalyList() {
 
   if (pendingAnomalies.length === 0) {
     return (
-      <div className="bg-[#151619] border border-[#2A2B2F] rounded-lg p-12 text-center">
-        <div className="w-16 h-16 bg-[#F27D26]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <ShieldCheck className="w-8 h-8 text-[#F27D26]" />
+      <div className="bg-[#0B0F14] border border-[#1C2632] rounded-xl p-12 text-center">
+        <div className="w-16 h-16 bg-[#FF7A00]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <ShieldCheck className="w-8 h-8 text-[#FF7A00]" />
         </div>
-        <h3 className="text-white font-bold mb-2">System Clear</h3>
-        <p className="text-[#8E9299] text-sm">No pending anomalies detected. Autonomous engine is monitoring all data streams.</p>
+        <h3 className="text-[#E6EDF3] font-bold mb-2">System Clear</h3>
+        <p className="text-[#8B949E] text-sm">No pending anomalies detected. Autonomous engine is monitoring all data streams.</p>
       </div>
     );
   }
@@ -55,11 +63,11 @@ export function AnomalyList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2 italic font-serif">
-          <AlertCircle className="w-5 h-5 text-[#F27D26]" />
+        <h2 className="text-lg font-semibold text-[#E6EDF3] flex items-center gap-2 italic font-serif">
+          <AlertTriangle className="w-5 h-5 text-[#FF7A00]" />
           Prioritized Intelligence Alerts
         </h2>
-        <span className="text-[10px] uppercase tracking-widest text-[#8E9299] font-mono">
+        <span className="text-[10px] uppercase tracking-widest text-[#8B949E] font-mono">
           Sorted by Financial Impact
         </span>
       </div>
@@ -67,21 +75,21 @@ export function AnomalyList() {
       {pendingAnomalies.map((anomaly) => (
         <div 
           key={anomaly.id}
-          className="bg-[#151619] border border-[#2A2B2F] rounded-lg overflow-hidden hover:border-[#F27D26] transition-all group"
+          className="bg-[#11171D] border border-[#1C2632] rounded-xl overflow-hidden hover:border-[#FF7A00]/50 transition-all group shadow-lg"
         >
-          <div className="p-4 flex flex-col md:flex-row gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
+          <div className="p-5 flex flex-col md:flex-row gap-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
                 <span className={cn(
-                  "text-[10px] px-2 py-0.5 rounded font-mono uppercase tracking-widest",
-                  anomaly.confidence > 0.9 ? "bg-red-900/30 text-red-400 border border-red-900/50" :
-                  anomaly.confidence > 0.8 ? "bg-orange-900/30 text-orange-400 border border-orange-900/50" :
-                  "bg-blue-900/30 text-blue-400 border border-blue-900/50"
+                  "text-[9px] px-2 py-0.5 rounded font-mono uppercase tracking-widest border",
+                  anomaly.confidence > 0.9 ? "bg-red-500/10 text-red-400 border-red-500/30" :
+                  anomaly.confidence > 0.8 ? "bg-orange-500/10 text-orange-400 border-orange-500/30" :
+                  "bg-blue-500/10 text-[#00E5FF] border-[#00E5FF]/30"
                 )}>
                   {anomaly.confidence > 0.9 ? 'CRITICAL' : anomaly.confidence > 0.8 ? 'HIGH' : 'MEDIUM'}
                 </span>
-                <span className="text-[10px] text-[#5A5B5F] font-mono uppercase">
-                  {anomaly.id}
+                <span className="text-[10px] text-[#5A5B5F] font-mono">
+                  #{anomaly.id}
                 </span>
                 <span className="text-[10px] text-[#5A5B5F] font-mono flex items-center gap-1">
                   <Clock className="w-3 h-3" />
@@ -89,25 +97,25 @@ export function AnomalyList() {
                 </span>
               </div>
               
-              <h3 className="text-md font-semibold text-white mb-2">{anomaly.description}</h3>
+              <h3 className="text-md font-semibold text-[#E6EDF3] mb-3">{anomaly.anomalyLabel}</h3>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#1A1B1E] p-3 rounded border border-[#2A2B2F] mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#0B0F14]/50 p-4 rounded-xl border border-[#1C2632] mb-4">
                 <div>
-                  <span className="text-[10px] uppercase tracking-widest text-[#5A5B5F] font-mono block mb-1">Root Cause Analysis</span>
-                  <p className="text-xs text-[#8E9299] italic">{anomaly.rootCause}</p>
+                  <span className="text-[9px] uppercase tracking-widest text-[#5A5B5F] font-mono block mb-1">Root Cause</span>
+                  <p className="text-xs text-[#8B949E] italic leading-relaxed">{anomaly.rootCause}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-widest text-[#5A5B5F] font-mono block mb-1">Vendor Context</span>
-                  <p className="text-xs text-[#8E9299]">{anomaly.vendor || 'N/A'} {anomaly.poNumber ? `(PO: ${anomaly.poNumber})` : ''}</p>
+                  <span className="text-[9px] uppercase tracking-widest text-[#5A5B5F] font-mono block mb-1">Context</span>
+                  <p className="text-xs text-[#8B949E] font-semibold">{anomaly.vendor || 'N/A'}</p>
                 </div>
               </div>
 
               {aiAnalysis[anomaly.id] && (
-                <div className="p-3 bg-[#F27D26]/5 border border-[#F27D26]/20 rounded-lg flex gap-3 mb-4">
-                  <Brain className="w-4 h-4 text-[#F27D26] shrink-0 mt-0.5" />
+                <div className="p-4 bg-[#FF7A00]/5 border border-[#FF7A00]/20 rounded-xl flex gap-3 mb-4">
+                  <Brain className="w-4 h-4 text-[#FF7A00] shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-[8px] uppercase tracking-widest text-[#F27D26] font-mono block mb-1">AI Autonomous Recommendation</span>
-                    <p className="text-xs text-[#8E9299] italic leading-relaxed">{aiAnalysis[anomaly.id]}</p>
+                    <span className="text-[8px] uppercase tracking-widest text-[#FF7A00] font-mono block mb-1">Autonomous Recommendation</span>
+                    <p className="text-xs text-[#8B949E] italic leading-relaxed">{aiAnalysis[anomaly.id]}</p>
                   </div>
                 </div>
               )}
@@ -115,7 +123,7 @@ export function AnomalyList() {
               <button 
                 onClick={() => handleAiAnalyze(anomaly)}
                 disabled={analyzingId === anomaly.id}
-                className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#F27D26] font-bold hover:text-[#D96C1E] transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#FF7A00] font-bold hover:text-[#E66D00] transition-colors disabled:opacity-50"
               >
                 {analyzingId === anomaly.id ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -126,41 +134,43 @@ export function AnomalyList() {
               </button>
             </div>
             
-            <div className="md:w-64 flex flex-col justify-between border-l border-[#2A2B2F] pl-6">
+            <div className="md:w-64 flex flex-col justify-between border-t md:border-t-0 md:border-l border-[#1C2632] pt-6 md:pt-0 md:pl-6">
               <div>
-                <div className="mb-4">
-                  <span className="text-[10px] uppercase tracking-widest text-[#8E9299] font-mono block mb-1">Financial Impact</span>
+                <div className="mb-6">
+                  <span className="text-[9px] uppercase tracking-widest text-[#5A5B5F] font-mono block mb-1">Financial Impact</span>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-mono text-white">${anomaly.amount.toLocaleString()}</span>
+                    <span className="text-2xl font-mono text-[#E6EDF3]">{fmt(anomaly.amount)}</span>
                     <TrendingDown className="w-4 h-4 text-red-500" />
                   </div>
                 </div>
                 
-                <div className="mb-4">
-                  <span className="text-[10px] uppercase tracking-widest text-[#8E9299] font-mono block mb-1">Confidence Score</span>
-                  <div className="w-full bg-[#1A1B1E] h-1.5 rounded-full overflow-hidden">
+                <div className="mb-6">
+                  <div className="flex justify-between items-end mb-1.5">
+                    <span className="text-[9px] uppercase tracking-widest text-[#5A5B5F] font-mono">Confidence Score</span>
+                    <span className="text-[10px] text-[#E6EDF3] font-mono">{(anomaly.confidence * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="w-full bg-[#0B0F14] h-1.5 rounded-full overflow-hidden">
                     <div 
-                      className="bg-[#F27D26] h-full transition-all duration-1000" 
+                      className="bg-[#FF7A00] h-full transition-all duration-1000 shadow-[0_0_10px_rgba(255,122,0,0.5)]" 
                       style={{ width: `${anomaly.confidence * 100}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-white font-mono mt-1 block">{(anomaly.confidence * 100).toFixed(1)}%</span>
                 </div>
               </div>
               
               <div className="flex gap-2">
                 <button 
                   onClick={() => approveAnomaly(anomaly.id)}
-                  className="flex-1 bg-[#F27D26] hover:bg-[#D96C1E] text-black text-[10px] font-bold uppercase tracking-widest py-2 rounded transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#FF7A00] hover:bg-[#E66D00] text-black text-[10px] font-bold uppercase tracking-widest py-3 rounded-lg transition-all hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2"
                 >
-                  <ShieldCheck className="w-3 h-3" />
+                  <ShieldCheck className="w-3.5 h-3.5" />
                   Approve
                 </button>
                 <button 
                   onClick={() => rejectAnomaly(anomaly.id)}
-                  className="px-3 border border-[#2A2B2F] hover:bg-red-900/20 hover:border-red-900 text-[#8E9299] hover:text-red-400 text-[10px] font-bold uppercase tracking-widest py-2 rounded transition-colors"
+                  className="px-4 border border-[#1C2632] hover:bg-red-500/10 hover:border-red-500/30 text-[#8B949E] hover:text-red-400 text-[10px] font-bold uppercase tracking-widest py-3 rounded-lg transition-all"
                 >
-                  <XCircle className="w-3 h-3" />
+                  <XCircle className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -170,3 +180,4 @@ export function AnomalyList() {
     </div>
   );
 }
+
